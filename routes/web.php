@@ -11,6 +11,13 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+//Route::get('/', function () {
+//    return view('welcome');
+//});
+
+Route::prefix('api')->group(function () {
+    //获得商家列表接口
+    Route::get('shops','ApiController@shops');
+    //获得指定商家接口
+    Route::get('getshop','ApiController@getshop');
 });
