@@ -434,7 +434,7 @@ class ApiController extends Controller
                 $message->to([$_SERVER['email']])->subject('有新订单产生');
             });
 
-            return ['status' => "true", 'message' => '添加成功', 'order_id' => $order_id];
+            return ['status' => "1", 'message' => '添加成功', 'order_id' => $order_id];
         } catch (\Exception $e) {
             DB::rollBack();
             return ['status' => "false", 'message' => '添加失败'];
