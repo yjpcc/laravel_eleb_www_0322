@@ -429,10 +429,10 @@ class ApiController extends Controller
                 // ,true
                 );
 
-//            $r =\Illuminate\Support\Facades\Mail::send('email', ['user'=>'zhangsan'], function ($message) {
-//                $message->from('18202840880@163.com', '饿了吧通知');
-//                $message->to([$_SERVER['email']])->subject('有新订单产生');
-//            });
+            $r =\Illuminate\Support\Facades\Mail::send('email', ['user'=>'zhangsan'], function ($message) {
+                $message->from('18202840880@163.com', '饿了吧通知');
+                $message->to([$_SERVER['email']])->subject('有新订单产生');
+            });
 
             return ['status' => "true", 'message' => '添加成功', 'order_id' => $order_id];
         } catch (\Exception $e) {
