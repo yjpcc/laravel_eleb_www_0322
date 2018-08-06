@@ -32,6 +32,7 @@ class ApiController extends Controller
     //获得商家列表接口
     public function shops(Request $request)
     {
+        if(!Redis::get('shops')){
         $where = [];
         if ($request->keyword) {
             $where[] = ['shop_name', 'like', "%$request->keyword%"];
@@ -41,12 +42,17 @@ class ApiController extends Controller
             $shop['distance'] = mt_rand(1, 999);
             $shop['estimate_time'] = mt_rand(20, 100);
         }
-        return $shops;
+
+            Redis::set('shops',json_encode($shops));
+        }
+
+        return Redis::get('shops');
     }
 
     //获得指定商家接口
     public function getshop(Request $request)
     {
+        if(!Redis::get('shop')){
         $shop = Shop::where('id', $request->id)->first();
         $shop['service_code'] = 4.5;// 服务总评分
         $shop['foods_code'] = 4.4;// 食物总评分
@@ -89,7 +95,9 @@ class ApiController extends Controller
         ];
         $shop['commodity'] = $menucategorys;//店铺商品
 
-        return $shop;
+         Redis::set('shop',json_encode($shop));
+        }
+        return Redis::get('shop');
     }
 
     //获取短信验证码接口
