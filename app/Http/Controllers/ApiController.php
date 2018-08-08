@@ -12,6 +12,7 @@ use App\Model\ShopCart;
 use App\Model\ShopUser;
 use App\Model\UserSite;
 use App\SignatureHelper;
+use App\SphinxClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -32,27 +33,45 @@ class ApiController extends Controller
     //获得商家列表接口
     public function shops(Request $request)
     {
-        if(!Redis::get('shops')){
-        $where = [];
         if ($request->keyword) {
-            $where[] = ['shop_name', 'like', "%$request->keyword%"];
-        }
-        $shops = Shop::where($where)->get()->makeHidden(['created_at', 'updated_at', 'shop_category_id']);
-        foreach ($shops as &$shop) {
-            $shop['distance'] = mt_rand(1, 999);
-            $shop['estimate_time'] = mt_rand(20, 100);
-        }
+            $cl = new SphinxClient ();
+            $cl->SetServer ( '127.0.0.1', 9312);
+            $cl->SetConnectTimeout ( 10 );
+            $cl->SetArrayResult ( true );
+// $cl->SetMatchMode ( SPH_MATCH_ANY);
+            $cl->SetMatchMode ( SPH_MATCH_EXTENDED2);
+            $cl->SetLimits(0, 1000);
+            $info = $request->keyword;
+            $res = $cl->Query($info, 'shop');//shopstore_search
+            if(array_key_exists('matches',$res)){
+                foreach ($res['matches'] as $v){
+                    $id[]=$v['id'];
+                }
+                    $shops=Shop::whereIn('id',$id)->get()->makeHidden(['created_at', 'updated_at', 'shop_category_id']);
+                foreach ($shops as &$shop) {
+                    $shop['distance'] = mt_rand(1, 999);
+                    $shop['estimate_time'] = mt_rand(20, 100);
+                }
+            }
 
-            Redis::set('shops',json_encode($shops));
+        }else{
+            if(!Redis::get('shops')){
+                $shops = Shop::all()->makeHidden(['created_at', 'updated_at', 'shop_category_id']);
+                foreach ($shops as &$shop) {
+                    $shop['distance'] = mt_rand(1, 999);
+                    $shop['estimate_time'] = mt_rand(20, 100);
+                }
+                Redis::set('shops',json_encode($shops));
+            }
+            $shops=Redis::get('shops');
         }
-
-        return Redis::get('shops');
+        return $shops;
     }
 
     //获得指定商家接口
     public function getshop(Request $request)
     {
-        if(!Redis::get('shop')){
+        if(!Redis::get('shop_'.$request->id)){
         $shop = Shop::where('id', $request->id)->first();
         $shop['service_code'] = 4.5;// 服务总评分
         $shop['foods_code'] = 4.4;// 食物总评分
@@ -95,9 +114,9 @@ class ApiController extends Controller
         ];
         $shop['commodity'] = $menucategorys;//店铺商品
 
-         Redis::set('shop',json_encode($shop));
+         Redis::set('shop_'.$request->id,json_encode($shop));
         }
-        return Redis::get('shop');
+        return Redis::get('shop_'.$request->id);
     }
 
     //获取短信验证码接口

@@ -15,6 +15,20 @@
 //    return view('welcome');
 //});
 
+Route::get('shops', function () {
+    $cl = new \App\SphinxClient ();
+    $cl->SetServer ( '127.0.0.1', 9312);
+    $cl->SetConnectTimeout ( 10 );
+    $cl->SetArrayResult ( true );
+// $cl->SetMatchMode ( SPH_MATCH_ANY);
+    $cl->SetMatchMode ( SPH_MATCH_EXTENDED2);
+    $cl->SetLimits(0, 1000);
+    $info =request()->keyword;
+    $res = $cl->Query($info, 'shop');//shopstore_search
+    dd($res);
+});
+
+
 Route::prefix('api')->group(function () {
     //获得商家列表接口
     Route::get('shops','ApiController@shops');
